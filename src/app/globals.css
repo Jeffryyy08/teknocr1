@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+/* BACKDROP */
+.cookie-popup {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 26px;
+  display: flex;
+  justify-content: center;
+  z-index: 9999;
+  background: rgba(8, 12, 26, 0.45);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.3s ease forwards;
+  opacity: 0;
+}
+
+/* Animación */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* BOX */
+.cookie-box {
+  width: 100%;
+  max-width: 1080px;
+  padding: 22px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #0d1529, #0a1120);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+  animation: slideUp 0.35s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* TITULO */
+.cookie-title {
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* TEXTO */
+.cookie-text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #c9d2e9;
+  margin-bottom: 18px;
+}
+
+.cookie-link {
+  color: #4bb8ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cookie-link:hover {
+  text-decoration: underline;
+}
+
+/* BOTONES */
+.cookie-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.cookie-accept,
+.cookie-decline {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s ease;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ACCEPT */
+.cookie-accept {
+  background: #187bff;
+  color: #fff;
+}
+
+.cookie-accept:hover {
+  background: #0f66d1;
+}
+
+/* DECLINE */
+.cookie-decline {
+  background: rgba(255, 255, 255, 0.12);
+  color: #b8c4dd;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cookie-decline:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
