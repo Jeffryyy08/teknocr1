@@ -381,7 +381,7 @@ export default function CartPage() {
             {/* Tiempo estimado de entrega */}
             <div className="flex justify-between text-blue-200 mb-2">
               <span>Entrega estimada:</span>
-              <span className="text-slate-400">2–6 días aprox.</span>
+              <span className="text-slate-400">2–6 días</span>
             </div>
 
             {/* Total final */}
