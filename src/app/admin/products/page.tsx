@@ -5,14 +5,15 @@ import { ClientProducts } from './ClientProducts'
 import { Package, Box, AlertTriangle } from 'lucide-react'
 
 export default async function AdminProducts() {
-  const { data: allProducts } = await supabase
+  // ✅ Cargar TODOS los productos (sin filtrar por is_active)
+  const {  data: allProducts } = await supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false })
 
   const totalProducts = allProducts?.length || 0
   const activeProducts = allProducts?.filter(p => p.is_active).length || 0
-  const lowStock = allProducts?.filter(p => p.stock <= 5).length || 0
+  const inactiveProducts = allProducts?.filter(p => !p.is_active).length || 0
 
   return (
     <AuthGuard>
@@ -30,7 +31,7 @@ export default async function AdminProducts() {
           </div>
 
           {/* MÉTRICAS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Total productos */}
             <div className="bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all">
               <div className="flex items-center gap-4">
@@ -56,10 +57,23 @@ export default async function AdminProducts() {
                 </div>
               </div>
             </div>
+
+            {/* Inactivos */}
+            <div className="bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-amber-600/30 rounded-xl">
+                  <AlertTriangle className="text-amber-300 w-8 h-8" />
+                </div>
+                <div>
+                  <p className="text-slate-300 text-sm">Productos Inactivos</p>
+                  <h2 className="text-3xl font-bold text-white">{inactiveProducts}</h2>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* LISTA DE PRODUCTOS */}
-          <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 rounded-3xl p-6 shadow-2xl hover:shadow-[0_0_30px_rgba(0,0,0,0.4)] transition-all">
+          <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 rounded-3xl p-6 shadow-2xl">
             <ClientProducts initialProducts={allProducts || []} />
           </div>
         </div>

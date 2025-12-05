@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { ProductActions } from '@/components/ProductActions'
-import { Star, Send } from 'lucide-react'
+import { Star, Send, Tag, Percent } from 'lucide-react'
 
 // ✅ Lista de palabras prohibidas
 const BAD_WORDS = [
@@ -16,6 +16,8 @@ const BAD_WORDS = [
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<any>(null)
+  const [aiDescription, setAiDescription] = useState<string | null>(null)
+  const [loadingAI, setLoadingAI] = useState(false)
   const [reviews, setReviews] = useState<any[]>([])
   const [relatedProducts, setRelatedProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,6 +29,33 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   })
   const [formError, setFormError] = useState('')
   const [formSuccess, setFormSuccess] = useState(false)
+  const fetchAIDescription = async () => {
+    if (!product) return;
+
+    try {
+      setLoadingAI(true);
+
+      const resp = await fetch("/api/ai-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: product.id,
+          name: product.name,
+          specs: product.specifications || {}
+        })
+      });
+
+      const data = await resp.json();
+
+      if (data?.text) {
+        setAiDescription(data.text);
+      }
+    } catch (err) {
+      console.error("AI description error:", err);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProductAndMore = async () => {
@@ -49,7 +78,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           .order('created_at', { ascending: false }),
         supabase
           .from('products')
-          .select('id, name, price, image_url, category, subcategory')
+          .select('id, name, price, image_url, category, subcategory, promo_price, promo_label')
           .eq('subcategory', product?.subcategory || '')
           .neq('id', id)
           .eq('is_active', true)
@@ -59,6 +88,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       if (productRes.error || !productRes.data) return notFound()
 
       setProduct(productRes.data)
+      fetchAIDescription()
       setReviews(reviewsRes.data || [])
       setRelatedProducts(relatedRes.data || [])
       setLoading(false)
@@ -67,8 +97,30 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     fetchProductAndMore()
   }, [params, product?.subcategory])
 
-  const avgRating = reviews.length > 0 
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
+  // ✅ Helper para verificar si la promoción está activa
+  const isPromoActive = () => {
+    if (!product) return false
+    if (!product.promo_price || product.promo_price >= product.price) return false
+
+    const now = new Date()
+    const start = product.promo_start ? new Date(product.promo_start) : null
+    const end = product.promo_end ? new Date(product.promo_end) : null
+
+    if (start && now < start) return false
+    if (end && now > end) return false
+
+
+
+    return true
+  }
+
+  const isActivePromo = isPromoActive()
+  const displayPrice = isActivePromo ? product?.promo_price! : product?.price
+  const originalPrice = isActivePromo ? product?.price : null
+  const discountPercent = originalPrice ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0
+
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : 0
 
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -85,8 +137,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
     // ✅ Filtro de palabras inadecuadas
     const lowerComment = comment.toLowerCase()
-    const badWord = BAD_WORDS.find(word => 
-      lowerComment.includes(word) || 
+    const badWord = BAD_WORDS.find(word =>
+      lowerComment.includes(word) ||
       name.toLowerCase().includes(word)
     )
 
@@ -156,7 +208,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Columna izquierda: Imagen */}
           <div>
-            <div className="bg-slate-800 rounded-2xl p-6">
+            <div className="bg-slate-800 rounded-2xl p-6 relative">
+              {/* ✅ Etiqueta de promoción */}
+              {isActivePromo && product.promo_label && (
+                <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-lg z-10 flex items-center gap-1">
+                  <Tag className="w-3 h-3" />
+                  {product.promo_label}
+                </div>
+              )}
+
               {product.image_url ? (
                 <img
                   src={product.image_url}
@@ -186,7 +246,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <p className="text-slate-300 mt-4 text-lg whitespace-pre-line">
               {product.description}
             </p>
-
             {product.category === 'pc-completa' &&
               product.specifications &&
               Object.keys(product.specifications).length > 0 && (
@@ -204,15 +263,52 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 </div>
               )}
 
+            {/* ✅ Precios con promoción */}
             <div className="mt-6 p-5 bg-slate-800/50 rounded-xl border border-slate-700">
-              <p className="text-3xl font-bold text-cyan-300">
-                ₡{Number(product.price).toLocaleString()}
-              </p>
-              <p className="text-slate-400 mt-1">Precio en colones costarricenses</p>
+              {originalPrice ? (
+                <div className="space-y-3">
+                  <p className="text-lg text-slate-500 line-through">
+                    Antes: ₡{originalPrice.toLocaleString()}
+                  </p>
+                  <p className="text-3xl font-bold text-cyan-300">
+                    Ahora: ₡{displayPrice.toLocaleString()}
+                  </p>
+                  <div className="flex items-center gap-2 bg-amber-900/30 text-amber-400 px-3 py-2 rounded-lg">
+                    <Percent className="w-4 h-4" />
+                    <span className="font-bold">¡Ahorra {discountPercent}%!</span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-3xl font-bold text-cyan-300">
+                    ₡{displayPrice.toLocaleString()}
+                  </p>
+                  <p className="text-slate-400 mt-1">Precio en colones costarricenses</p>
+                </div>
+              )}
             </div>
 
             <ProductActions product={product} />
           </div>
+        </div>
+        {/* 📌 DESCRIPCIÓN GENERADA POR IA */}
+        <div className="mt-6 p-5 bg-slate-800/50 border border-slate-700 rounded-xl">
+          <h2 className="text-xl font-bold text-white mb-3">
+            Descripción generada con IA
+          </h2>
+
+          {loadingAI ? (
+            <p className="text-slate-400">Generando descripción...</p>
+          ) : aiDescription ? (
+            <p className="text-slate-300 whitespace-pre-line">{aiDescription}</p>
+          ) : (
+            <button
+              onClick={fetchAIDescription}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+            >
+              Generar descripción
+            </button>
+          )}
         </div>
 
         {/* ✅ Sección de reseñas (debajo de los detalles, en toda la anchura) */}
@@ -244,11 +340,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < review.rating
-                                ? 'text-amber-400 fill-amber-400'
-                                : 'text-slate-600'
-                            }`}
+                            className={`w-4 h-4 ${i < review.rating
+                              ? 'text-amber-400 fill-amber-400'
+                              : 'text-slate-600'
+                              }`}
                           />
                         ))}
                       </div>
@@ -308,11 +403,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         aria-label={`Calificar con ${star} estrellas`}
                       >
                         <Star
-                          className={`w-6 h-6 ${
-                            star <= reviewForm.rating
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-slate-500'
-                          }`}
+                          className={`w-6 h-6 ${star <= reviewForm.rating
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-slate-500'
+                            }`}
                         />
                       </button>
                     ))}
@@ -367,31 +461,60 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <div className="bg-slate-800/50 rounded-xl p-6">
               <h2 className="text-2xl font-bold text-white mb-6">Productos Similares</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {relatedProducts.map(p => (
-                  <div key={p.id} className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700 hover:bg-slate-800 transition">
-                    <div className="h-40 bg-slate-900 flex items-center justify-center p-4">
-                      {p.image_url ? (
-                        <img
-                          src={p.image_url}
-                          alt={p.name}
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <div className="text-slate-600">Sin imagen</div>
+                {relatedProducts.map(p => {
+                  const isPromo = p.promo_price && p.promo_price < p.price
+                  const priceToShow = isPromo ? p.promo_price : p.price
+                  const original = isPromo ? p.price : null
+
+                  return (
+                    <div key={p.id} className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700 hover:bg-slate-800 transition relative">
+                      {/* ✅ Etiqueta en相似 */}
+                      {isPromo && p.promo_label && (
+                        <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+                          {p.promo_label}
+                        </div>
                       )}
+
+                      <div className="h-40 bg-slate-900 flex items-center justify-center p-4">
+                        {p.image_url ? (
+                          <img
+                            src={p.image_url}
+                            alt={p.name}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-slate-600">Sin imagen</div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <p className="text-white font-medium text-sm line-clamp-2">{p.name}</p>
+
+                        {/* ✅ Precios con promoción */}
+                        {original ? (
+                          <div className="space-y-1">
+                            <p className="text-sm text-slate-500 line-through">
+                              ₡{original.toLocaleString()}
+                            </p>
+                            <p className="text-lg font-bold text-cyan-300">
+                              ₡{priceToShow.toLocaleString()}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-lg font-bold text-cyan-300 mt-2">
+                            ₡{priceToShow.toLocaleString()}
+                          </p>
+                        )}
+
+                        <button
+                          onClick={() => window.location.href = `/tienda/${p.id}`}
+                          className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 rounded-lg transition"
+                        >
+                          Ver producto
+                        </button>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <p className="text-white font-medium text-sm line-clamp-2">{p.name}</p>
-                      <p className="text-cyan-300 font-bold mt-2">₡{Number(p.price).toLocaleString()}</p>
-                      <button
-                        onClick={() => window.location.href = `/tienda/${p.id}`}
-                        className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 rounded-lg transition"
-                      >
-                        Ver producto
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>

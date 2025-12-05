@@ -4,12 +4,19 @@
 import { useCart } from '@/context/CartContext'
 import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 export function FloatingCartButton() {
   const { getTotalItems } = useCart()
   const totalItems = getTotalItems()
+  const pathname = usePathname()
 
+  // ❌ No mostrar si NO hay productos
   if (totalItems === 0) return null
+
+  // ❌ No mostrar en el carrito ni en checkout
+  const hideOn = ['/carrito', '/carrito/checkout']
+  if (hideOn.includes(pathname)) return null
 
   return (
     <Link

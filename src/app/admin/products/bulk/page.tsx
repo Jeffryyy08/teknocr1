@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plus, Save, Trash2, Tag, Calendar, Percent } from 'lucide-react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 
@@ -28,11 +28,19 @@ export default function BulkProductCreate() {
   const [bulkPrefix, setBulkPrefix] = useState('')
   const [bulkCategory, setBulkCategory] = useState('')
   const [bulkSubcategory, setBulkSubcategory] = useState('')
+  // ✅ Campos de promoción por defecto
+  const [bulkPromoPrice, setBulkPromoPrice] = useState('')
+  const [bulkPromoLabel, setBulkPromoLabel] = useState('Oferta')
 
   const [products, setProducts] = useState([{
     name: bulkPrefix,
     description: '',
     price: '',
+    // ✅ Campos de promoción
+    promo_price: bulkPromoPrice,
+    promo_start: '',
+    promo_end: '',
+    promo_label: bulkPromoLabel,
     category: bulkCategory,
     subcategory: bulkSubcategory,
     is_featured: false,
@@ -62,6 +70,10 @@ export default function BulkProductCreate() {
       name: bulkPrefix,
       description: '',
       price: '',
+      promo_price: bulkPromoPrice,
+      promo_start: '',
+      promo_end: '',
+      promo_label: bulkPromoLabel,
       category: bulkCategory,
       subcategory: bulkSubcategory,
       is_featured: false,
@@ -107,6 +119,11 @@ export default function BulkProductCreate() {
         name: p.name,
         description: p.description,
         price: parseFloat(p.price),
+        // ✅ Datos de promoción
+        promo_price: p.promo_price ? parseFloat(p.promo_price) : null,
+        promo_start: p.promo_start || null,
+        promo_end: p.promo_end || null,
+        promo_label: p.promo_label || 'Oferta',
         category: p.category,
         subcategory: p.subcategory,
         is_featured: p.is_featured,
@@ -114,6 +131,13 @@ export default function BulkProductCreate() {
         image_url: p.image_url || null,
         specifications: p.specifications
       }))
+
+      // ✅ Validación previa
+      for (const p of productsToInsert) {
+        if (p.promo_price && p.promo_price >= p.price) {
+          throw new Error(`El precio promocional debe ser menor al precio normal para "${p.name}"`)
+        }
+      }
 
       const { error } = await supabase
         .from('products')
@@ -123,8 +147,9 @@ export default function BulkProductCreate() {
 
       alert(`✅ ${products.length} producto${products.length > 1 ? 's' : ''} creados correctamente`)
       router.push('/admin/products')
-    } catch (error) {
-      alert('❌ Error al crear los productos')
+    } catch (error: any) {
+      const errorMsg = error.message || 'Error al crear los productos'
+      alert(`❌ ${errorMsg}`)
       console.error(error)
     } finally {
       setSaving(false)
@@ -150,10 +175,10 @@ export default function BulkProductCreate() {
           </button>
         </div>
 
-        {/* ✅ Configuración rápida */}
+        {/* ✅ Configuración rápida con promoción */}
         <div className="bg-slate-800/50 p-4 rounded-xl mb-6 border border-slate-600">
           <h3 className="font-medium text-blue-200 mb-3">Configuración Rápida (opcional)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="text-sm text-blue-200">Prefijo de Nombre</label>
               <input 
@@ -170,7 +195,7 @@ export default function BulkProductCreate() {
                 value={bulkCategory}
                 onChange={e => {
                   setBulkCategory(e.target.value)
-                  setBulkSubcategory('') // reset subcategory
+                  setBulkSubcategory('')
                 }}
                 className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white"
               >
@@ -194,6 +219,19 @@ export default function BulkProductCreate() {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="text-sm text-amber-300 flex items-center gap-1">
+                <Tag className="w-3 h-3" />
+                Etiqueta Promoción
+              </label>
+              <input
+                type="text"
+                value={bulkPromoLabel}
+                onChange={e => setBulkPromoLabel(e.target.value)}
+                placeholder="Oferta"
+                className="w-full bg-slate-700 border border-amber-900/50 rounded px-3 py-2 text-amber-300"
+              />
+            </div>
           </div>
         </div>
 
@@ -213,7 +251,7 @@ export default function BulkProductCreate() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm text-blue-200 mb-2">Nombre *</label>
                   <input
@@ -225,13 +263,26 @@ export default function BulkProductCreate() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-blue-200 mb-2">Precio (₡) *</label>
+                  <label className="block text-sm text-blue-200 mb-2">Precio Normal (₡) *</label>
                   <input
                     type="number"
                     value={product.price}
                     onChange={e => updateProduct(index, 'price', e.target.value)}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white"
                     required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-2 flex items-center gap-1">
+                    <Percent className="w-3 h-3" />
+                    Precio Promocional (₡)
+                  </label>
+                  <input
+                    type="number"
+                    value={product.promo_price}
+                    onChange={e => updateProduct(index, 'promo_price', e.target.value)}
+                    className="w-full bg-slate-700 border border-amber-900/50 rounded px-3 py-2 text-amber-300"
+                    placeholder="Opcional"
                   />
                 </div>
                 <div>
@@ -272,7 +323,7 @@ export default function BulkProductCreate() {
                     placeholder="https://ejemplo.com/imagen.jpg"
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 lg:col-span-3">
                   <label className="block text-sm text-blue-200 mb-2">Descripción</label>
                   <textarea
                     value={product.description}
@@ -283,7 +334,46 @@ export default function BulkProductCreate() {
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center space-x-4">
+              {/* ✅ Fechas de promoción */}
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm text-amber-300 mb-2 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Fecha Inicio Promo
+                  </label>
+                  <input
+                    type="date"
+                    value={product.promo_start}
+                    onChange={e => updateProduct(index, 'promo_start', e.target.value)}
+                    className="w-full bg-slate-700 border border-amber-900/50 rounded px-3 py-2 text-amber-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-2 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Fecha Fin Promo
+                  </label>
+                  <input
+                    type="date"
+                    value={product.promo_end}
+                    onChange={e => updateProduct(index, 'promo_end', e.target.value)}
+                    className="w-full bg-slate-700 border border-amber-900/50 rounded px-3 py-2 text-amber-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-2">Etiqueta Personalizada</label>
+                  <input
+                    type="text"
+                    value={product.promo_label}
+                    onChange={e => updateProduct(index, 'promo_label', e.target.value)}
+                    placeholder="Oferta"
+                    maxLength={20}
+                    className="w-full bg-slate-700 border border-amber-900/50 rounded px-3 py-2 text-amber-300"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center space-x-6">
                 <label className="flex items-center space-x-2 text-blue-200">
                   <input
                     type="checkbox"

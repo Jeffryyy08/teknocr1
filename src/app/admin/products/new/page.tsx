@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Tag, Calendar, Percent } from 'lucide-react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 
@@ -48,11 +48,16 @@ export default function NewProduct() {
     name: '',
     description: '',
     price: '',
+    // ✅ Campos de promoción
+    promo_price: '',
+    promo_start: '',
+    promo_end: '',
+    promo_label: 'Oferta',
     category: '',
     subcategory: '',
     is_featured: false,
     is_active: true,
-    image_url: '', // ✅ Añadido
+    image_url: '',
     specifications: {
       procesador: '',
       tarjeta_grafica: '',
@@ -87,19 +92,31 @@ export default function NewProduct() {
     setSaving(true)
 
     try {
+      const insertData: any = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        subcategory: formData.subcategory,
+        is_featured: formData.is_featured,
+        is_active: formData.is_active,
+        specifications: formData.specifications,
+        image_url: formData.image_url || null,
+        // ✅ Datos de promoción
+        promo_price: formData.promo_price ? parseFloat(formData.promo_price) : null,
+        promo_start: formData.promo_start || null,
+        promo_end: formData.promo_end || null,
+        promo_label: formData.promo_label || 'Oferta'
+      }
+
+      // ✅ Validación: si hay precio promocional, debe ser menor al normal
+      if (formData.promo_price && parseFloat(formData.promo_price) >= parseFloat(formData.price)) {
+        throw new Error('El precio promocional debe ser menor al precio normal')
+      }
+
       const { error } = await supabase
         .from('products')
-        .insert({
-          name: formData.name,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          category: formData.category,
-          subcategory: formData.subcategory,
-          is_featured: formData.is_featured,
-          is_active: formData.is_active,
-          specifications: formData.specifications,
-          image_url: formData.image_url || null // ✅ Solo la URL
-        })
+        .insert(insertData)
 
       if (error) throw error
 
@@ -132,7 +149,7 @@ export default function NewProduct() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-900 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <Link
@@ -169,7 +186,6 @@ export default function NewProduct() {
           <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
             <h2 className="text-xl font-semibold text-white mb-4">Información Básica</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* ... (mismo contenido, sin cambios) ... */}
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">Nombre *</label>
                 <input
@@ -182,7 +198,7 @@ export default function NewProduct() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-blue-200 mb-2">Precio (₡) *</label>
+                <label className="block text-sm font-medium text-blue-200 mb-2">Precio Normal (₡) *</label>
                 <input
                   type="number"
                   name="price"
@@ -258,7 +274,77 @@ export default function NewProduct() {
             </div>
           </div>
 
-          {/* Especificaciones Técnicas (las 8 completas) */}
+          {/* ✅ PROMOCIONES */}
+          <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-amber-400" />
+              Promoción (Opcional)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2 flex items-center gap-1">
+                  <Percent className="w-4 h-4" />
+                  Precio Promocional (₡)
+                </label>
+                <input
+                  type="number"
+                  name="promo_price"
+                  value={formData.promo_price}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="Ej: 350000"
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 placeholder-amber-500 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2 flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Fecha Inicio
+                </label>
+                <input
+                  type="date"
+                  name="promo_start"
+                  value={formData.promo_start}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2 flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Fecha Fin
+                </label>
+                <input
+                  type="date"
+                  name="promo_end"
+                  value={formData.promo_end}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2">Etiqueta</label>
+                <input
+                  type="text"
+                  name="promo_label"
+                  value={formData.promo_label}
+                  onChange={handleInputChange}
+                  placeholder="Oferta"
+                  maxLength={20}
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 placeholder-amber-500 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+            <div className="mt-3 p-3 bg-amber-900/20 border border-amber-800/50 rounded-lg">
+              <p className="text-amber-400 text-sm">
+                <span className="font-medium">💡 Consejo:</span> El precio promocional debe ser menor al precio normal. 
+                La etiqueta aparecerá en la esquina superior derecha del producto.
+              </p>
+            </div>
+          </div>
+
+          {/* Especificaciones Técnicas */}
           {formData.category === 'pc-completa' && (
             <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
               <h2 className="text-xl font-semibold text-white mb-4">Especificaciones Técnicas</h2>

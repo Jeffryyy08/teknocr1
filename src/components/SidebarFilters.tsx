@@ -1,8 +1,9 @@
 // src/components/SidebarFilters.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 const SUBCATEGORIES = {
   'pc-completa': [
@@ -48,11 +49,79 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
   )
   const [sort, setSort] = useState<string>(searchParams.get('sort') || 'none')
 
+  // ✅ Estado para conteos
+  const [counts, setCounts] = useState<Record<string, number>>({})
+  const [loadingCounts, setLoadingCounts] = useState(true)
+
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    'pc-completa': false,
-    'componentes': false,
-    'accesorios': false
+    'pc-completa': currentCategory === 'all' || currentCategory === 'pc-completa',
+    'componentes': currentCategory === 'all' || currentCategory === 'componentes',
+    'accesorios': currentCategory === 'all' || currentCategory === 'accesorios'
   })
+
+  // ✅ Cargar conteos una sola vez (o al cambiar filtros)
+  useEffect(() => {
+    const loadCounts = async () => {
+      setLoadingCounts(true)
+
+      // Filtros actuales
+      const categoryFilter = searchParams.get('category')
+      const searchFilter = searchParams.get('search')
+      const subcategoryFilter = searchParams.get('subcategory')
+
+      // Construir query base
+      let query = supabase
+        .from('products')
+        .select('category, subcategory', { count: 'exact' })
+        .eq('is_active', true)
+
+      // Aplicar filtros actuales
+      if (categoryFilter && categoryFilter !== 'all') {
+        query = query.eq('category', categoryFilter)
+      }
+      if (searchFilter) {
+        const safeSearch = searchFilter.replace(/[%_]/g, '\\$&')
+        query = query.or(`name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error loading counts:', error)
+        setLoadingCounts(false)
+        return
+      }
+
+      // ✅ Agrupar por (category + subcategory)
+      const countMap: Record<string, number> = {}
+
+      // Contar por categoría
+      const categoryCounts: Record<string, number> = { 'pc-completa': 0, 'componentes': 0, 'accesorios': 0 }
+
+      // Contar por subcategoría
+      const subcategoryCounts: Record<string, number> = {}
+
+      data.forEach(p => {
+        // Contar por categoría
+        if (categoryCounts[p.category] !== undefined) {
+          categoryCounts[p.category]++
+        }
+
+        // Contar por subcategoría
+        const key = `${p.category}-${p.subcategory || 'otros'}`
+        subcategoryCounts[key] = (subcategoryCounts[key] || 0) + 1
+      })
+
+      // Combinar
+      setCounts({
+        ...categoryCounts,
+        ...subcategoryCounts
+      })
+      setLoadingCounts(false)
+    }
+
+    loadCounts()
+  }, [searchParams]) // ✅ Se actualiza cuando cambian los filtros
 
   useEffect(() => {
     setSelectedSubcategory(searchParams.get('subcategory'))
@@ -103,9 +172,12 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
     setSort(value)
   }
 
+  // ✅ Helper para obtener conteo
+  const getCount = (key: string): number => counts[key] || 0
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 sticky top-24">
-      
+
       {/* Búsqueda */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-blue-200 mb-2">Buscar</label>
@@ -118,9 +190,27 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
             className="w-full px-4 py-2.5 pl-4 pr-10 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('')
+                const params = new URLSearchParams(searchParams.toString())
+                params.delete('search')
+                params.set('page', '1')
+                router.push(`?${params.toString()}`)
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white focus:outline-none"
+              aria-label="Limpiar búsqueda"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={handleSearch}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+            className="absolute right-10 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
             aria-label="Buscar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,6 +218,25 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
             </svg>
           </button>
         </div>
+
+        {/* ✅ Botón de limpiar (solo si hay búsqueda activa) */}
+        {search && (
+          <button
+            onClick={() => {
+              setSearch('')
+              const params = new URLSearchParams(searchParams.toString())
+              params.delete('search')
+              params.set('page', '1')
+              router.push(`?${params.toString()}`)
+            }}
+            className="mt-2 text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Limpiar búsqueda
+          </button>
+        )}
       </div>
 
       {/* Categorías */}
@@ -137,6 +246,7 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
         {(['pc-completa', 'componentes', 'accesorios'] as const).map(cat => {
           const subcats = SUBCATEGORIES[cat] || []
           const isExpanded = expandedCategories[cat]
+          const catCount = getCount(cat)
 
           return (
             <div key={cat} className="mb-3 last:mb-0">
@@ -146,7 +256,12 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
               >
                 <span>
                   {cat === 'pc-completa' ? 'PCs Completas' :
-                   cat === 'componentes' ? 'Componentes' : 'Accesorios'}
+                    cat === 'componentes' ? 'Componentes' : 'Accesorios'}
+                  {catCount > 0 && (
+                    <span className="ml-2 bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full">
+                      {catCount}
+                    </span>
+                  )}
                 </span>
                 <svg
                   className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -160,19 +275,27 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
 
               {isExpanded && subcats.length > 0 && (
                 <div className="ml-4 mt-1 space-y-1">
-                  {subcats.map(sub => (
-                    <button
-                      key={sub.value}
-                      onClick={() => handleSubcategoryClick(cat, sub.value)}
-                      className={`block w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                        selectedSubcategory === sub.value
-                          ? 'bg-blue-600 text-white'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700/30'
-                      }`}
-                    >
-                      {sub.name}
-                    </button>
-                  ))}
+                  {subcats.map(sub => {
+                    const key = `${cat}-${sub.value}`
+                    const count = getCount(key)
+                    return (
+                      <button
+                        key={sub.value}
+                        onClick={() => handleSubcategoryClick(cat, sub.value)}
+                        className={`block w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors ${selectedSubcategory === sub.value
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700/30'
+                          }`}
+                      >
+                        {sub.name}
+                        {count > 0 && (
+                          <span className="ml-2 bg-slate-700 text-slate-400 text-xs px-1.5 py-0.5 rounded">
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -190,6 +313,7 @@ export default function SidebarFilters({ currentCategory }: SidebarFiltersProps)
         >
           <option value={12}>12 productos</option>
           <option value={24}>24 productos</option>
+          <option value={48}>48 productos</option>
         </select>
       </div>
 

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import ProductList from './ProductList'
 import SidebarFilters from '@/components/SidebarFilters'
 import { AnimatedSection } from '@/components/AnimatedSection'
-import Pagination from '@/components/Pagination' // ✅ Añadido
+import Pagination from '@/components/Pagination'
 
 export default async function TiendaPage({
   searchParams
@@ -17,7 +17,8 @@ export default async function TiendaPage({
     perPage?: string
   }>
 }) {
-  const params = await searchParams || {}
+  // ✅ Force no cache in production
+  const params = (await searchParams) || {}
   const {
     search = '',
     category = '',
@@ -32,25 +33,26 @@ export default async function TiendaPage({
   const from = (page - 1) * perPage
   const to = from + perPage - 1
 
-  let query = supabase
+  // ✅ Add cache: 'no-store' to bypass static generation
+  const query = supabase
     .from('products')
     .select('*', { count: 'exact' })
     .eq('is_active', true)
+    .order(
+      sort === 'price-asc' ? 'price' :
+      sort === 'price-desc' ? 'price' :
+      'created_at',
+      { ascending: sort === 'price-asc' }
+    )
 
   if (search) {
     const safeSearch = search.replace(/[%_]/g, '\\$&')
-    query = query.or(`name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`)
+    query.or(`name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`)
   }
-  if (category) query = query.eq('category', category)
-  if (subcategory) query = query.eq('subcategory', subcategory)
+  if (category) query.eq('category', category)
+  if (subcategory) query.eq('subcategory', subcategory)
 
-  if (sort === 'price-asc') query = query.order('price', { ascending: true })
-  else if (sort === 'price-desc') query = query.order('price', { ascending: false })
-  else query = query.order('created_at', { ascending: false })
-
-  query = query.range(from, to)
-
-  const { data: products, error, count } = await query
+  const { data: products, error, count } = await query.range(from, to)
 
   if (error) {
     console.error('Error fetching products:', error)
@@ -77,27 +79,22 @@ export default async function TiendaPage({
           </p>
         </div>
 
-        {/* Banner */}
         <div className="w-full flex justify-center bg-transparent mt-10 px-4">
           <AnimatedSection>
             <div className="overflow-hidden shadow-2xl">
               <img
                 src="/desca1.png"
-                alt="Banner Tekno"
                 className="w-full h-full object-cover"
               />
             </div>
           </AnimatedSection>
         </div>
 
-        {/* Contenido */}
         <div className="flex flex-col lg:flex-row gap-8 mt-8">
-          {/* Sidebar */}
           <div className="lg:w-64 flex-shrink-0">
             <SidebarFilters currentCategory="all" />
           </div>
 
-          {/* Productos */}
           <div className="flex-1">
             <ProductList 
               products={products || []} 
@@ -109,7 +106,6 @@ export default async function TiendaPage({
               sort={sort}
             />
 
-            {/* ✅ Paginación (solo si hay más de 1 página) */}
             {totalPages > 1 && (
               <Pagination page={page} totalPages={totalPages} />
             )}

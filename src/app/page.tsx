@@ -4,6 +4,9 @@ import Link from 'next/link'
 import { AnimatedSection } from '@/components/AnimatedSection'
 import type { Review } from '@/types'
 
+// ✅ Marca como dinámico para evitar caché estática en producción
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
   // ✅ Cargar productos destacados
   const { data: products } = await supabase
@@ -24,9 +27,6 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white overflow-x-hidden">
       {/* Hero mejorado */}
       <div className="relative overflow-hidden">
-        {/* Partículas de fondo (opcional) */}
-        {/* <div id="tsparticles" className="absolute inset-0 z-0"></div> */}
-
         <div className="container mx-auto px-4 py-28 text-center relative z-10">
           <AnimatedSection>
             <div className="mb-6">
@@ -61,13 +61,11 @@ export default async function HomePage() {
           </AnimatedSection>
         </div>
       </div>
+      
       {/* Banner Promocional */}
       <div className="w-full flex justify-center bg-transparent mt-10 px-4">
         <AnimatedSection>
-          <div className=" 
-      overflow-hidden 
-      shadow-2xl 
-    ">
+          <div className="overflow-hidden shadow-2xl">
             <a href="/tienda">
               <img
                 src="/desca1.png"
@@ -78,7 +76,6 @@ export default async function HomePage() {
           </div>
         </AnimatedSection>
       </div>
-
 
       {/* Por qué elegirnos */}
       <div className="py-20 bg-slate-900/50">
@@ -164,7 +161,7 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* Productos destacados (tu sección existente) */}
+      {/* Productos destacados */}
       {products && products.length > 0 && (
         <div className="py-20 bg-blue-900/10">
           <div className="container mx-auto px-4">

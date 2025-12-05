@@ -1,10 +1,10 @@
-// src/app/admin/products/edit/[id]/page.tsx (versión final y corregida)
+// src/app/admin/products/edit/[id]/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft, Save, Trash2, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, Trash2, AlertTriangle, Tag, Calendar, Percent } from 'lucide-react'
 import Link from 'next/link'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 
@@ -55,6 +55,11 @@ export default function EditProduct() {
     name: '',
     description: '',
     price: '',
+    // ✅ Campos de promoción
+    promo_price: '',
+    promo_start: '',
+    promo_end: '',
+    promo_label: 'Oferta',
     category: '',
     subcategory: '',
     is_featured: false,
@@ -91,6 +96,10 @@ export default function EditProduct() {
             name: product.name || '',
             description: product.description || '',
             price: product.price?.toString() || '',
+            promo_price: product.promo_price?.toString() || '',
+            promo_start: product.promo_start ? product.promo_start.split('T')[0] : '',
+            promo_end: product.promo_end ? product.promo_end.split('T')[0] : '',
+            promo_label: product.promo_label || 'Oferta',
             category: product.category || '',
             subcategory: product.subcategory || '',
             is_featured: product.is_featured || false,
@@ -125,10 +134,20 @@ export default function EditProduct() {
     setSaving(true)
 
     try {
-      // ✅ Validación de precio
+      // ✅ Validación de precios
       const price = parseFloat(formData.price)
+      const promoPrice = formData.promo_price ? parseFloat(formData.promo_price) : null
+      
       if (isNaN(price) || price < 0) {
         throw new Error('El precio debe ser un número positivo')
+      }
+      
+      if (promoPrice && (isNaN(promoPrice) || promoPrice <= 0)) {
+        throw new Error('El precio promocional debe ser un número positivo')
+      }
+      
+      if (promoPrice && promoPrice >= price) {
+        throw new Error('El precio promocional debe ser menor al precio normal')
       }
 
       // ✅ Construir datos seguros
@@ -136,6 +155,10 @@ export default function EditProduct() {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: price,
+        promo_price: promoPrice,
+        promo_start: formData.promo_start || null,
+        promo_end: formData.promo_end || null,
+        promo_label: formData.promo_label || 'Oferta',
         category: formData.category,
         subcategory: formData.subcategory || null,
         is_featured: formData.is_featured,
@@ -149,39 +172,34 @@ export default function EditProduct() {
       if (formData.category === 'pc-completa') {
         updateData.specifications = formData.specifications
       } else {
-        updateData.specifications = {} // o null, según tu esquema
+        updateData.specifications = {}
       }
-
-      // ✅ Depuración útil
-      console.log('📝 Enviando actualización:', { productId, updateData })
 
       const { error, data } = await supabase
         .from('products')
         .update(updateData)
         .eq('id', productId)
-        .select() // ✅ Para obtener feedback inmediato
+        .select()
 
       if (error) {
-        // ✅ Mensaje claro y útil
         const msg = error.message || JSON.stringify(error)
         throw new Error(`Supabase: ${msg}`)
       }
 
       if (!data || data.length === 0) {
-        throw new Error('No se encontró el producto (¿ID incorrecto o RLS bloqueando?)')
+        throw new Error('No se encontró el producto')
       }
 
       alert('✅ Producto actualizado correctamente')
       router.push('/admin/products')
     } catch (error: any) {
-      // ✅ Error legible y con contexto
       const errorMsg = error?.message || 'Error desconocido'
-      console.error('❌ Error detallado al actualizar producto:', {
+      console.error('❌ Error al actualizar producto:', {
         error,
         productId,
         formData
       })
-      alert(`❌ Error: ${errorMsg}\n\n💡 Verifica las políticas RLS en Supabase para la tabla 'products'.`)
+      alert(`❌ ${errorMsg}`)
     } finally {
       setSaving(false)
     }
@@ -316,7 +334,7 @@ export default function EditProduct() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
-                  Precio (₡) *
+                  Precio Normal (₡) *
                 </label>
                 <input
                   type="number"
@@ -403,6 +421,76 @@ export default function EditProduct() {
                 className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Describe el producto en detalle..."
               />
+            </div>
+          </div>
+
+          {/* ✅ PROMOCIONES */}
+          <div className="bg-slate-800/70 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-amber-400" />
+              Promoción (Opcional)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2 flex items-center gap-1">
+                  <Percent className="w-4 h-4" />
+                  Precio Promocional (₡)
+                </label>
+                <input
+                  type="number"
+                  name="promo_price"
+                  value={formData.promo_price}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="Ej: 350000"
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 placeholder-amber-500 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2 flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Fecha Inicio
+                </label>
+                <input
+                  type="date"
+                  name="promo_start"
+                  value={formData.promo_start}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2 flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Fecha Fin
+                </label>
+                <input
+                  type="date"
+                  name="promo_end"
+                  value={formData.promo_end}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-2">Etiqueta</label>
+                <input
+                  type="text"
+                  name="promo_label"
+                  value={formData.promo_label}
+                  onChange={handleInputChange}
+                  placeholder="Oferta"
+                  maxLength={20}
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-900/50 rounded-lg text-amber-300 placeholder-amber-500 focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+            <div className="mt-3 p-3 bg-amber-900/20 border border-amber-800/50 rounded-lg">
+              <p className="text-amber-400 text-sm">
+                <span className="font-medium">💡 Consejo:</span> El precio promocional debe ser menor al precio normal. 
+                La etiqueta aparecerá en la esquina superior derecha del producto.
+              </p>
             </div>
           </div>
 
