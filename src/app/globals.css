@@ -3,16 +3,29 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* ============================================================
+    🎨 1. VARIABLES DE TEMA
+   ============================================================ */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Gradientes por defecto (modo normal) */
+  --gradient-start: #0a0f1f;
+  --gradient-end: #08111f;
+
+  /* Texto */
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+
+  /* Navidad (solo se usan cuando data-theme = christmas) */
+  --xmas-bg-start: #0d1a33;
+  --xmas-bg-end: #091a28;
+
+  --xmas-glow: rgba(173, 216, 255, 0.35);
+  --xmas-border: rgba(200, 230, 255, 0.25);
+  --xmas-snow: rgba(255, 255, 255, 0.8);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,12 +35,61 @@
   }
 }
 
+/* ============================================================
+    🎄 2. TEMA NAVIDEÑO AUTOMÁTICO
+   ============================================================ */
+/* Solo cambiamos VARIABLES. El fondo real lo pinta .site-wrapper */
+body[data-theme="christmas"] {
+  --background: var(--xmas-bg-start);
+  --foreground: #e7f6ff;
+
+  --gradient-start: var(--xmas-bg-start);
+  --gradient-end: var(--xmas-bg-end);
+}
+
+/* Sombra azul helada global (suave, si luego molesta la quitamos) */
+body[data-theme="christmas"] * {
+  text-shadow: 0 0 4px rgba(200, 230, 255, 0.35);
+}
+
+@keyframes snowfall {
+  from {
+    background-position: 0 0, 20px 40px;
+  }
+
+  to {
+    background-position: 0 800px, 20px 840px;
+  }
+}
+
+/* ============================================================
+    🎁 4. BASE DE LA PÁGINA
+   ============================================================ */
+/* 👉 AQUÍ ES DONDE QUITAMOS EL PROBLEMA:
+   el body ya NO dibuja fondo sólido; lo hace .site-wrapper. */
 body {
-  background: var(--background);
+  background: transparent !important;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-/* BACKDROP */
+
+/* El wrapper principal (lo tienes en <body className="... site-wrapper">)
+   es el que pinta el fondo global según las variables */
+.site-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg,
+      var(--gradient-start),
+      var(--gradient-end));
+}
+
+/* Contenido por si quieres asegurar altura mínima bajo el navbar */
+.page-content {
+  min-height: calc(100vh - 4rem);
+}
+
+/* ============================================================
+    🍪 Cookie Popup
+   ============================================================ */
 .cookie-popup {
   position: fixed;
   left: 0;
@@ -43,14 +105,12 @@ body {
   opacity: 0;
 }
 
-/* Animación */
 @keyframes fadeIn {
   to {
     opacity: 1;
   }
 }
 
-/* BOX */
 .cookie-box {
   width: 100%;
   max-width: 1080px;
@@ -67,13 +127,13 @@ body {
     transform: translateY(40px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
   }
 }
 
-/* TITULO */
 .cookie-title {
   color: #ffffff;
   font-size: 19px;
@@ -81,7 +141,6 @@ body {
   margin-bottom: 10px;
 }
 
-/* TEXTO */
 .cookie-text {
   font-size: 15px;
   line-height: 1.5;
@@ -99,7 +158,6 @@ body {
   text-decoration: underline;
 }
 
-/* BOTONES */
 .cookie-buttons {
   display: flex;
   gap: 10px;
@@ -117,7 +175,6 @@ body {
   font-weight: 500;
 }
 
-/* ACCEPT */
 .cookie-accept {
   background: #187bff;
   color: #fff;
@@ -127,7 +184,6 @@ body {
   background: #0f66d1;
 }
 
-/* DECLINE */
 .cookie-decline {
   background: rgba(255, 255, 255, 0.12);
   color: #b8c4dd;
@@ -137,10 +193,27 @@ body {
 .cookie-decline:hover {
   background: rgba(255, 255, 255, 0.18);
 }
+
+/* ============================================================
+    🧹 Scrollbar Remover
+   ============================================================ */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+body header,
+body nav {
+  background: linear-gradient(
+    to right,
+    #02142b,
+    #011425 50%,
+    #000d16
+  ) !important;
+  border-bottom: 1px solid rgba(200, 230, 255, 0.25) !important;
+  backdrop-filter: blur(4px);
 }

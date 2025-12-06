@@ -4,8 +4,7 @@ import Link from 'next/link'
 
 export default function AboutPage() {
   return (
-    <div className="pt-20 min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 relative overflow-x-hidden">
-
+    <div className="pt-20 min-h-screen about-bg relative overflow-x-hidden">
       {/* Textura suave en el fondo */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(56,189,248,0.12)_0%,rgba(0,0,0,0)_70%)] opacity-40"></div>
 
@@ -68,7 +67,7 @@ export default function AboutPage() {
 
             <div className="space-y-4 text-slate-300 leading-relaxed">
               <p>
-                <span className="text-blue-300 font-semibold">Octubre 2025:</span> TeknoCR comienza como un pequeño proyecto desde casa, ensamblando PCs por pedido y atendiendo clientes por WhatsApp. 
+                <span className="text-blue-300 font-semibold">Octubre 2025:</span> TeknoCR comienza como un pequeño proyecto desde casa, ensamblando PCs por pedido y atendiendo clientes por WhatsApp.
                 Cada venta se hacía con detalle, explicando todo paso a paso.
               </p>
 
@@ -123,7 +122,7 @@ export default function AboutPage() {
           </h2>
 
           <p className="text-blue-200 mb-8 max-w-xl mx-auto">
-            Contáctanos y recibe asesoría gratuita antes de comprar.  
+            Contáctanos y recibe asesoría gratuita antes de comprar.
             Queremos que inviertas bien, no más.
           </p>
 

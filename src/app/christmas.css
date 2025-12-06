@@ -1,0 +1,242 @@
+/* ❄️ MODO NAVIDEÑO "HIELO" — ACTIVADO SOLO CUANDO data-theme="christmas" */
+
+
+/* ================================================
+   🎄 1. FONDO GENERAL (CORREGIDO)
+   ================================================ */
+body[data-theme="christmas"] .site-wrapper {
+  background:
+    radial-gradient(circle at top, rgba(135, 206, 250, 0.35) 0%, transparent 70%),
+    linear-gradient(to bottom, #031427 0%, #04101f 45%, #000914 100%);
+  color: #eaf8ffe3 !important;
+}
+
+
+/* ================================================
+   🎄 2. FONDO DEL CONTENIDO
+   ================================================ */
+body[data-theme="christmas"] .page-content {
+  background:
+    radial-gradient(circle at 30% 0%, rgba(173, 216, 230, 0.35) 0%, transparent 55%),
+    linear-gradient(to bottom, #03101f 0%, #020b17 60%, #00060f 100%);
+}
+
+
+/* ================================================
+   🎄 3. OVERRIDE PARA SECCIONES CON GRADIENTES
+   (page.tsx, about.tsx, contacto, etc.)
+   ================================================ */
+
+body[data-theme="christmas"] .bg-gradient-to-br {
+  background-image:
+    radial-gradient(circle at top left, rgba(180, 228, 255, 0.45) 0%, transparent 65%),
+    linear-gradient(to bottom right, #031427 0%, #04101f 40%, #07172e 100%) !important;
+}
+
+
+/* ================================================
+   ❄️ 4. TARJETAS HELADAS
+   ================================================ */
+body[data-theme="christmas"] .bg-slate-800 {
+  background: linear-gradient(
+    135deg,
+    rgba(20, 40, 60, 0.92),
+    rgba(10, 25, 45, 0.92)
+  ) !important;
+  border: 1px solid rgba(200, 230, 255, 0.10) !important;
+  backdrop-filter: blur(3px);
+}
+
+body[data-theme="christmas"] .bg-slate-900 {
+  background-color: rgba(5, 15, 30, 0.95) !important;
+}
+
+
+/* ================================================
+   🎅 5. NAVBAR NAVIDEÑO
+   ================================================ */
+body[data-theme="christmas"] header,
+body[data-theme="christmas"] nav {
+  background: linear-gradient(
+    to right,
+    #020b17,
+    #041627 50%,
+    #03101c
+  ) !important;
+  border-bottom: 1px solid rgba(200, 230, 255, 0.25) !important;
+  backdrop-filter: blur(4px);
+}
+
+
+/* ================================================
+   ❄️ 6. TEXTO HELADO
+   ================================================ */
+body[data-theme="christmas"] .text-slate-400 {
+  color: #cfeaff !important;
+}
+body[data-theme="christmas"] .text-slate-500 {
+  color: #b1d4f9 !important;
+}
+body[data-theme="christmas"] .text-slate-300 {
+  color: #e4f4ff !important;
+}
+
+
+/* ================================================
+   ❄️ 7. BOTONES CON EFECTO HIELO
+   ================================================ */
+body[data-theme="christmas"] .bg-blue-600 {
+  background: linear-gradient(to bottom, #5fc8ff, #38a8e0) !important;
+  box-shadow: 0 0 8px rgba(110, 190, 255, 0.6);
+  border: 1px solid rgba(150, 220, 255, 0.4);
+}
+body[data-theme="christmas"] .bg-blue-600:hover {
+  background: linear-gradient(to bottom, #8ad7ff, #4dbaf3) !important;
+}
+
+body[data-theme="christmas"] .bg-green-600 {
+  background: linear-gradient(to bottom, #6bf2d4, #38c9a9) !important;
+  box-shadow: 0 0 8px rgba(120, 255, 220, 0.5);
+  border: 1px solid rgba(150, 255, 230, 0.3);
+}
+body[data-theme="christmas"] .bg-green-600:hover {
+  background: linear-gradient(to bottom, #8cffeb, #5fe8c9) !important;
+}
+
+
+/* ================================================
+   ❄️ 8. BORDES TIPO ESCARCHA
+   ================================================ */
+body[data-theme="christmas"] .border-slate-700 {
+  border-color: rgba(200, 235, 255, 0.25) !important;
+}
+
+
+/* ================================================
+   ❄️ 9. FOOTER FRÍO
+   ================================================ */
+body[data-theme="christmas"] footer {
+  background: linear-gradient(
+    to top,
+    #03101f 5%,
+    #020b17 60%,
+    transparent 100%
+  ) !important;
+  border-top: 1px solid rgba(200, 230, 255, 0.2) !important;
+}
+
+
+/* ================================================
+   🎄 10. HOME BACKGROUND
+   ================================================ */
+body[data-theme="christmas"] .homepage-bg {
+  background:
+    radial-gradient(circle at top, rgba(180, 240, 255, 0.25), transparent 70%),
+    linear-gradient(to bottom, #02182c, #032039, #000b18) !important;
+}
+
+body[data-theme="default"] .homepage-bg {
+  background: linear-gradient(to bottom right, #0d2855, #000000);
+}
+
+
+/* ================================================
+   🎄 11. ABOUT PAGE BACKGROUND
+   ================================================ */
+body[data-theme="christmas"] .about-bg {
+  background:
+    radial-gradient(circle at top left, rgba(180, 240, 255, 0.18), transparent 70%),
+    radial-gradient(circle at bottom right, rgba(150, 210, 255, 0.12), transparent 70%),
+    linear-gradient(to bottom right, #021423, #032c45, #00111d) !important;
+}
+
+body[data-theme="default"] .about-bg {
+  background: linear-gradient(to bottom right, #0f172a, #172554, #0b1120);
+}
+/* 🎄 Barra decorativa arriba del navbar */
+body[data-theme="christmas"] .christmas-strip {
+  height: 1.5px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    #ff4d4d,
+    #ff4d4d 10px,
+    #4db8ff 10px,
+    #4db8ff 20px,
+    #ffe066 20px,
+    #ffe066 30px,
+    #7dffb1 30px,
+    #7dffb1 40px
+  );
+}
+
+/* ❄ Efecto de hielo al hacer scroll */
+.nav-frost {
+  box-shadow: 0 0 25px rgba(180, 230, 255, 0.4);
+  border-bottom: 1px solid rgba(200, 230, 255, 0.45) !important;
+}
+
+/* ❄ Enlaces helados */
+.nav-link {
+  color: white;
+  transition: 0.2s ease;
+}
+body[data-theme="christmas"] .nav-link:hover {
+  color: #aee2ff !important;
+  text-shadow: 0 0 6px rgba(150, 220, 255, 0.8);
+}
+/* ============================================================
+   ❄️ COPOS DE NIEVE (fondo, sin bloquear clicks)
+   ============================================================ */
+
+.snow-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8; /* encima del fondo, debajo de modales/carro flotante */
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  opacity: 0.55;
+  animation-name: snow-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Movimiento vertical + leve zig-zag */
+@keyframes snow-fall {
+  0% {
+    transform: translate3d(0, -10%, 0);
+  }
+  50% {
+    transform: translate3d(-15px, 50vh, 0);
+  }
+  100% {
+    transform: translate3d(10px, 110vh, 0);
+  }
+}
+
+/* 🎲 “Random” por nth-child: posición, tamaño y duración */
+
+.snowflake:nth-child(1)  { left: 5%;  animation-duration: 15s; animation-delay: 0s;   transform: scale(0.7); }
+.snowflake:nth-child(2)  { left: 15%; animation-duration: 18s; animation-delay: -3s;  transform: scale(0.9); }
+.snowflake:nth-child(3)  { left: 25%; animation-duration: 20s; animation-delay: -6s;  transform: scale(0.6); }
+.snowflake:nth-child(4)  { left: 35%; animation-duration: 16s; animation-delay: -1s;  transform: scale(1);   }
+.snowflake:nth-child(5)  { left: 45%; animation-duration: 19s; animation-delay: -4s;  transform: scale(0.8); }
+.snowflake:nth-child(6)  { left: 55%; animation-duration: 21s; animation-delay: -2s;  transform: scale(1.1); }
+.snowflake:nth-child(7)  { left: 65%; animation-duration: 17s; animation-delay: -5s;  transform: scale(0.75);}
+.snowflake:nth-child(8)  { left: 75%; animation-duration: 23s; animation-delay: -7s;  transform: scale(0.9); }
+.snowflake:nth-child(9)  { left: 85%; animation-duration: 18s; animation-delay: -9s;  transform: scale(0.6); }
+.snowflake:nth-child(10) { left: 12%; animation-duration: 22s; animation-delay: -11s; transform: scale(1.1);}
+.snowflake:nth-child(11) { left: 28%; animation-duration: 19s; animation-delay: -8s;  transform: scale(0.7); }
+.snowflake:nth-child(12) { left: 38%; animation-duration: 24s; animation-delay: -10s; transform: scale(1.2);}
+.snowflake:nth-child(13) { left: 52%; animation-duration: 20s; animation-delay: -12s; transform: scale(0.8);}
+.snowflake:nth-child(14) { left: 68%; animation-duration: 17s; animation-delay: -6s;  transform: scale(0.9); }
+.snowflake:nth-child(15) { left: 78%; animation-duration: 21s; animation-delay: -13s; transform: scale(0.65);}
+.snowflake:nth-child(16) { left: 90%; animation-duration: 25s; animation-delay: -4s;  transform: scale(1.15);}
+.snowflake:nth-child(17) { left: 3%;  animation-duration: 23s; animation-delay: -9s;  transform: scale(0.85);}
+.snowflake:nth-child(18) { left: 50%; animation-duration: 26s; animation-delay: -15s; transform: scale(1.3);}

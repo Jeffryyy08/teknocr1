@@ -24,7 +24,7 @@ export default async function HomePage() {
     .limit(3)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white overflow-x-hidden">
+    <div className="min-h-screen homepage-bg text-white overflow-x-hidden">
       {/* Hero mejorado */}
       <div className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-28 text-center relative z-10">
@@ -61,15 +61,15 @@ export default async function HomePage() {
           </AnimatedSection>
         </div>
       </div>
-      
+
       {/* Banner Promocional */}
       <div className="w-full flex justify-center bg-transparent mt-10 px-4">
         <AnimatedSection>
           <div className="overflow-hidden shadow-2xl">
             <a href="/tienda">
               <img
-                src="/desca1.png"
-                alt="Banner Tekno"
+                src="/.png"
+                alt="1000x250 Tekno"
                 className="w-full h-full object-cover"
               />
             </a>

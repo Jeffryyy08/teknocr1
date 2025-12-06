@@ -1,23 +1,30 @@
 // src/app/layout.tsx
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { Navigation } from '@/components/Navigation'
-import { CartProvider } from '@/context/CartContext'
-import { FloatingCartButton } from '@/components/FloatingCartButton'
-import Footer from '@/components/Footer'
-import React from 'react'
-import { CartNotification } from '@/components/CartNotification'
-import CookieBanner from "@/components/CookieBanner"
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import "./christmas.css";
+
+import { Navigation } from "@/components/Navigation";
+import { CartProvider } from "@/context/CartContext";
+import { FloatingCartButton } from "@/components/FloatingCartButton";
+import Footer from "@/components/Footer";
+import React from "react";
+import { CartNotification } from "@/components/CartNotification";
+import CookieBanner from "@/components/CookieBanner";
+import { Snowflakes } from "@/components/SnowFlakes"; // ❄️ NUEVO
 
 export const metadata: Metadata = {
-  title: 'TeknoCR - Tienda de PCs',
-  description: 'Expertos en venta de computadoras, mantenimiento y cambio de piezas. Calidad y confianza garantizada.',
-}
+  title: "TeknoCR - Tienda de PCs",
+  description:
+    "Expertos en venta de computadoras, mantenimiento y cambio de piezas. Calidad y confianza garantizada.",
+};
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // 🎄 Activar tema navideño automáticamente SOLO en diciembre
+  const isChristmas = new Date().getMonth() === 11;
+
   return (
     <html lang="es">
       <head>
@@ -36,19 +43,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
 
-      <body className={`${inter.className} antialiased`}>
-        {/* Google Tag Manager (noscript) */}
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-K3DLB4FS"
-            height="0"
-            width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
-          ></iframe>
-        </noscript>
-
+      <body
+        className={`${inter.className} antialiased`}
+        data-theme={isChristmas ? "christmas" : "default"}
+      >
         <CartProvider>
           <Navigation />
+          {isChristmas && <Snowflakes />}
           <main className="pt-16">{children}</main>
           <FloatingCartButton />
           <CartNotification />
@@ -57,5 +58,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </CartProvider>
       </body>
     </html>
-  )
+  );
 }
