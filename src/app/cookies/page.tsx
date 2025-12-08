@@ -150,11 +150,6 @@ export default function CookiesPolicy() {
                             </a>
                         </p>
                     </div>
-
-                    {/* Footer pequeño */}
-                    <div className="mt-12 text-center text-slate-500 text-sm">
-                        © {new Date().getFullYear()} TEKNOCR. Todos los derechos reservados.
-                    </div>
                 </div>
             </div>
         </div>
