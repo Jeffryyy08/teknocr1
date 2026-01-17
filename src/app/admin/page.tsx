@@ -16,7 +16,8 @@ import {
   Calendar,
   Clock,
   Info,
-  TrendingUp
+  TrendingUp,
+  ImageIcon
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { OrdersChart } from '@/components/charts/OrdersChart'
@@ -283,6 +284,10 @@ export default function AdminDashboard() {
           </Link>
           <Link href="/admin/reviews" className="inline-flex items-center gap-2 bg-slate-800/60 border border-slate-700 text-white px-4 py-2 rounded-lg shadow hover:brightness-105 transition">
             Reviews
+          </Link>
+          <Link href="/admin/gallery" className="inline-flex items-center gap-2 bg-slate-800/60 border border-slate-700 text-white px-4 py-2 rounded-lg shadow hover:brightness-105 transition">
+            <ImageIcon className="w-4 h-4" />
+            Galería
           </Link>
           
         </div>

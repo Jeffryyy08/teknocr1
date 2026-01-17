@@ -50,6 +50,7 @@ export function Navigation() {
                     <Link href="/sobre-nosotros" className="nav-link">Sobre Nosotros</Link>
                     <Link href="/contacto" className="nav-link">Contáctenos</Link>
                     <Link href="/armarpc" className="nav-link">Arma tu PC</Link>
+                    <Link href="/galeria" className="nav-link">Nuestro Arte</Link>
                 </div>
 
                 <button
@@ -78,6 +79,8 @@ export function Navigation() {
                         <Link href="/sobre-nosotros" className="nav-link" onClick={() => setIsMenuOpen(false)}>Sobre Nosotros</Link>
                         <Link href="/contacto" className="nav-link" onClick={() => setIsMenuOpen(false)}>Contáctenos</Link>
                         <Link href="/armarpc" className="nav-link" onClick={() => setIsMenuOpen(false)}>Arma tu PC</Link>
+                        <Link href="/galeria" className="nav-link" onClick={() => setIsMenuOpen(false)}>Nuestro Arte</Link>
+
                     </div>
                 </motion.div>
             )}
