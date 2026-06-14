@@ -13,6 +13,7 @@
     "@supabase/supabase-js": "^2.76.1",
     "@tsparticles/slim": "^3.9.1",
     "chart.js": "^4.5.1",
+    "cheerio": "^1.1.2",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
     "lodash": "^4.17.21",

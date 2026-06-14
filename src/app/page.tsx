@@ -68,7 +68,7 @@ export default async function HomePage() {
           <div className="overflow-hidden shadow-2xl">
             <a href="/tienda">
               <img
-                src="/.png"
+                src="public/header-banner.png"
                 alt="1000x250 Tekno"
                 className="w-full h-full object-cover"
               />
