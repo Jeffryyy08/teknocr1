@@ -83,7 +83,7 @@ export default async function TiendaPage({
           <AnimatedSection>
             <div className="overflow-hidden shadow-2xl">
               <img
-                src="/.png"
+                src="header-banner.png"
                 alt="1000x250 Tekno"
                 className="w-full h-full object-cover"
               />
