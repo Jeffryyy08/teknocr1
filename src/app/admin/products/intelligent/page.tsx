@@ -591,9 +591,7 @@ export default function IntelligentProductCreator() {
     });
 
     try {
-      const RAILWAY_URL = 'https://extract-production-7f45.up.railway.app';
-      
-      const response = await fetch(`${RAILWAY_URL}/extract-eurocomp`, {
+const response = await fetch('/api/extract-eurocomp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
